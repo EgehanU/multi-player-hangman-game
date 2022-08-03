@@ -1,7 +1,10 @@
+from calendar import c
 from random import randint, random
 from smtplib import SMTP_SSL
 from os import environ
 from email.message import EmailMessage
+
+from pyparsing import ParseExpression
 
 
 # multi-player hangman game, at least 2 players needed to play. There is no upper bounds 
@@ -20,6 +23,8 @@ class Hangman:
     def reduce(self):
         self.body.pop(0)
         self.body_parts_count -= 1
+    def loss(self):
+        self.body = []
 
 class Player:
     points = 0
@@ -58,6 +63,27 @@ class EmailSender:
     def __repr__(self):
         return ("The scores sent to the ", self.receiver)
 
+def checkSameOrNot(list, word):
+    for index, element in enumerate(list):
+        if element is word[index]:
+            continue
+        else:
+            return False
+    return True
+
+def indexFinder(letter, word):
+    index_list = []
+    for index, element in enumerate(word):
+        if letter is element:
+            index_list.append(index)
+    return index_list
+
+def atLeastOnePlayer(players):
+    for player in players:
+        if len(player.hangman.body) > 0:
+            return True
+    return False
+
 def play():
     while(True):
         number_of_players = int(input("Please enter the number of players: "))
@@ -81,10 +107,48 @@ def play():
     print("Let's start the game\n")
     for i in range(number_of_games):
         print("Please guess a letter or a word. If the input is greater or equal to 2, it will considered as a sentence")
+        found_word = ["" for i in range(len(words[random_index_of_words]))]
+        index_list = []
         for i in range(len(words[random_index_of_words])):
             print("_ ", end=" ")
         print("\n")
-        break
-
+        while not(checkSameOrNot(found_word, words[random_index_of_words])):
+            for player in range(number_of_players):
+                if len(players[player].hangman.body) < 1:
+                    continue
+                elif atLeastOnePlayer(players):
+                    entry = input("Turn of player {player_name}, please guess a letter or a word: ".format(player_name=players[player].player_name))
+                    if len(entry) > 1:
+                        if entry is words[random_index_of_words]:
+                            print("Player {player} has guessed the word correctly. Congrats! Earned +100 points".format(player=players[player].player_name))
+                            words.remove(entry)
+                            players[player].pointArranger(100)
+                            players[player].wordCount()
+                        else:
+                            print("Wrong guess, player {player} is out for this word".format(player=players[player].player_name))
+                            players[player].hangman.loss()
+                    elif len(entry) == 1:
+                        if entry in words[random_index_of_words]:
+                            index_list = indexFinder(entry, words[random_index_of_words])
+                            for index in index_list:
+                                players[player].pointArranger(10)
+                                found_word.insert(index, entry)
+                                found_word.pop()
+                            print("Good guess!")
+                            for i in found_word:
+                                if i == "":
+                                    print("_ ", end="")
+                                else:
+                                    print(i, end="")
+                            print(" \n", end="")
+                        else:
+                            print("Wrong guess")
+                            players[player].hangman.reduce()
+                    else:
+                        print("Player {player} has passed the turn, -10 points".format(player=players[player].player_name))
+                        players[player].pointArranger(-10)
+                else:
+                    print("this turn ends, the word is not found")
+        words.pop(random_index_of_words)
 
 play()
