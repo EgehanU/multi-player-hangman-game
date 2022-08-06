@@ -64,12 +64,15 @@ class EmailSender:
         return ("The scores sent to the ", self.receiver)
 
 def checkSameOrNot(list, word):
-    for index, element in enumerate(list):
-        if element is word[index]:
-            continue
-        else:
-            return False
-    return True
+    if len(list) == 0:
+        for index, element in enumerate(list):
+            if element is word[index]:
+                continue
+            else:
+                return False
+        return True
+    else:
+        return False
 
 def indexFinder(letter, word):
     index_list = []
@@ -107,19 +110,19 @@ def play():
     print("Let's start the game\n")
     for i in range(number_of_games):
         print("Please guess a letter or a word. If the input is greater or equal to 2, it will considered as a sentence")
-        found_word = ["" for i in range(len(words[random_index_of_words]))]
+        found_word = []
         index_list = []
         for i in range(len(words[random_index_of_words])):
             print("_ ", end=" ")
         print("\n")
         while not(checkSameOrNot(found_word, words[random_index_of_words])):
             for player in range(number_of_players):
-                if len(players[player].hangman.body) < 1:
+                if players[player].hangman.body_parts_count < 1:
                     continue
                 elif atLeastOnePlayer(players):
                     entry = input("Turn of player {player_name}, please guess a letter or a word: ".format(player_name=players[player].player_name))
                     if len(entry) > 1:
-                        if entry is words[random_index_of_words]:
+                        if entry == words[random_index_of_words]:
                             print("Player {player} has guessed the word correctly. Congrats! Earned +100 points".format(player=players[player].player_name))
                             words.remove(entry)
                             players[player].pointArranger(100)
