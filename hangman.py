@@ -1,10 +1,7 @@
-from calendar import c
-from random import randint, random
+from random import randint
 from smtplib import SMTP_SSL
 from os import environ
 from email.message import EmailMessage
-
-from pyparsing import ParseExpression
 
 
 # multi-player hangman game, at least 2 players needed to play. There is no upper bounds 
@@ -38,9 +35,10 @@ class Player:
     # method for counting words_guess_correctly
     def wordCount(self):
         self.words_guess_correctly += 1
+    def totalPoints(self):
+        self.points += 100 * self.words_guess_correctly
 
 class EmailSender:
-    # TODO add env varaibles and edit the content of the message
     SENDER = environ.get("EMAIL_ADDRESS")
     PASWORD = environ.get("EMAIL_PASSWORD")
     # to send email the user email address has been taken from
@@ -64,7 +62,7 @@ class EmailSender:
         return ("The scores sent to the ", self.receiver)
 
 def checkSameOrNot(list, word):
-    if len(list) == 0:
+    if len(list) != 0:
         for index, element in enumerate(list):
             if element is word[index]:
                 continue
@@ -86,6 +84,31 @@ def atLeastOnePlayer(players):
         if len(player.hangman.body) > 0:
             return True
     return False
+
+def empty_index_delete(list):
+    for index, element in enumerate(list):
+        if element == "":
+            del list[index]
+            return 
+
+def rank_players(players):
+    players_ranking = []
+    for i in range(len(players)):
+        for j in range(len(players)):
+            pass
+    return players_ranking
+    # TODO for ranking out players
+
+def find_winner(players):
+    max = players[0].points
+    winners = []
+    for player in players:
+        if player.points > max:
+            max = player.points
+    for player in players:
+        if player.points == max:
+            winners.append(player.player_name)
+    return winners
 
 def play():
     while(True):
@@ -110,7 +133,7 @@ def play():
     print("Let's start the game\n")
     for i in range(number_of_games):
         print("Please guess a letter or a word. If the input is greater or equal to 2, it will considered as a sentence")
-        found_word = []
+        found_word = ["" for i in range(len(words[random_index_of_words]))]
         index_list = []
         for i in range(len(words[random_index_of_words])):
             print("_ ", end=" ")
@@ -136,7 +159,7 @@ def play():
                             for index in index_list:
                                 players[player].pointArranger(10)
                                 found_word.insert(index, entry)
-                                found_word.pop()
+                                empty_index_delete(found_word)
                             print("Good guess!")
                             for i in found_word:
                                 if i == "":
@@ -152,6 +175,13 @@ def play():
                         players[player].pointArranger(-10)
                 else:
                     print("this turn ends, the word is not found")
+            print("This word is completed")
         words.pop(random_index_of_words)
+    
+    for player in players:
+        player.totalPoints()
+    winners = find_winner(players)
+    players_ranking = rank_players(players)
 
+    
 play()
