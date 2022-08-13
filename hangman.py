@@ -88,7 +88,7 @@ def atLeastOnePlayer(players):
 def empty_index_delete(list):
     for index, element in enumerate(list):
         if element == "":
-            del list[index]
+            list.pop(index)
             return 
 
 def rank_players(players):
@@ -128,16 +128,17 @@ def play():
             "incomprehensibility", "hippopotomonstrosesquippedaliophobia",
             "target", "emission", "absurd", "syndrome", "byte", "rhythm",
             "subway", "squdgy"]
-    random_index_of_words = randint(0, len(words) - 1)
 
     print("Let's start the game\n")
     for i in range(number_of_games):
+        random_index_of_words = randint(0, len(words) - 1)
         print("Please guess a letter or a word. If the input is greater or equal to 2, it will considered as a sentence")
         found_word = ["" for i in range(len(words[random_index_of_words]))]
         index_list = []
         for i in range(len(words[random_index_of_words])):
             print("_ ", end=" ")
-        print("\n")
+        if i != 0:
+            print("\nThis word is completed\n")
         while not(checkSameOrNot(found_word, words[random_index_of_words])):
             for player in range(number_of_players):
                 if players[player].hangman.body_parts_count < 1:
@@ -150,6 +151,9 @@ def play():
                             words.remove(entry)
                             players[player].pointArranger(100)
                             players[player].wordCount()
+                            found_word = []
+                            for letter_index in range(len(words[random_index_of_words])):
+                                found_word.append(words[random_index_of_words][letter_index])
                         else:
                             print("Wrong guess, player {player} is out for this word".format(player=players[player].player_name))
                             players[player].hangman.loss()
@@ -175,7 +179,6 @@ def play():
                         players[player].pointArranger(-10)
                 else:
                     print("this turn ends, the word is not found")
-            print("This word is completed")
         words.pop(random_index_of_words)
     
     for player in players:
